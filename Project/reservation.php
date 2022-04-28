@@ -104,26 +104,36 @@ catch(PDOException $e){
 
 <script>
     function validate(form){
-        let year = form.year.value;
         let timein = form.timein.value;
         let timeout = form.timeout.value;
-        let license = form.license_n.value;
+        let licensenum = form.license_n.value;
+        let licensestate = form.license_s.value;
+        let customerfname = form.fname.value;
+        let customerminit = form.minit.value;
+        let customerlname = form.lname.value;
         let isValid = true;
 
-
-        if(!/[0-9]{4}/.test(year)){
+        if(!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}/.test(timein)){
             isValid = false;
         }
 
-        if(!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}/.test(year)){
-            isValid = false;
-        }
-
-        if(!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}/.test(year)){
+        if(!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}/.test(timeout)){
             isValid = false;
         }
         
-        if(license.length > 15){
+        if(!/[0-9A-Za-z ]{1,15}$/.test(licensenum)){
+            isValid = false;
+        }
+
+        if(customerfname.length == 0 || !/\b([A-Za-zÀ-ÿ][-,a-z. ']+[ ]*)+/.test(customerfname)){
+            isValid = false;
+        }
+
+        if(customerminit.length != 0 && customerminit.length != 1){
+            isValid = false;
+        }
+
+        if(customerlname.length == 0 || !/\b([A-Za-zÀ-ÿ][-,a-z. ']+[ ]*)+/.test(customerlname)){
             isValid = false;
         }
 
@@ -132,27 +142,35 @@ catch(PDOException $e){
 </script>
 
 <?php 
-//TODO make cardnum in CUSTOMER not null and remove any direct inserts to cardnum in here
-$fname = se($_POST, "fname", "", false);
-if(strlen($fname) > 0){
+$licensenum = se($_POST, "license_n", "", false);
+if(strlen($licensenum) > 0){ 
     $minit = se($_POST, "minit", "", false);
     $lname = se($_POST, "lname", "", false);
-    $cardnum = "9999999999999999"; //TODO TEMPORARY
-    $licensenum = se($_POST, "license_n", "", false);
+    $fname = se($_POST, "fname", "", false);
     $licensestate = se($_POST, "license_s", "", false);
-    
-    $statement = $db->prepare("INSERT INTO CUSTOMER (LicenseNumber, LicenseState, FName, MInit, LName, CardNum)
-    VALUES (:licensen, :state, :fname, :minit, :lname, :cardn)");
+
+    $statement = $db->prepare("SELECT * FROM CUSTOMER WHERE LicenseNumber = :licensenum");
     try{
-        $statement->execute([":licensen" => $licensenum, ":state" => $licensestate, ":fname" => $fname, ":minit" => $minit, ":lname" => $lname, ":cardn" => $cardnum]);
-    
+        $statement->execute([":licensenum" => $licensenum]);
+        $results = $statement->fetchAll(PDO::FETCH_ASSOC);
+        if(count($results) == 0){
+            $statement = $db->prepare("INSERT INTO CUSTOMER (LicenseNumber, LicenseState, FName, MInit, LName)
+            VALUES (:licensen, :state, :fname, :minit, :lname)");
+            try{
+                $statement->execute([":licensen" => $licensenum, ":state" => $licensestate, ":fname" => $fname, ":minit" => $minit, ":lname" => $lname]);
+            }
+            catch(PDOException $e){
+                echo "query error (inserting into customer table)" . $e;
+            }
+        }
+
         $timein = se($_POST, "timein", "", false);
         $timein = "'" . $timein . ":00" . "'";
         $timeout = se($_POST, "timeout", "", false);
         $timeout =  "'". $timeout . ":00" . "'";
         $loc = se($_POST, "branch", "", false);
         $class = se($_POST, "class", "", false);
-        
+
         $statement = $db->prepare("INSERT INTO RESERVATION (DateTimeIn, DateTimeOut, LocationID, ClassID, LicenseNumber)
         VALUES (TIMESTAMP( $timein), TIMESTAMP( $timeout), :loc, :class, :licensen)");
         try{
@@ -160,13 +178,20 @@ if(strlen($fname) > 0){
             echo "success!";
         }
         catch(PDOException $e){
-            echo $e;
+            if($e->getCode() == "22007"){
+                echo "Invalid date and time entry.";
+            }
+            else{
+                echo "query error (inserting into reservation): " . $e;
+            }
         }
     }
     catch(PDOException $e){
-        //TODO handle entering an already existing customer (duplicate license number)
-        echo $e;
+        echo "query error (getting customer record): " . $e ;
     }
+}
+else{
+    echo "Please fill out all fields.";
 }
 ?>
 
