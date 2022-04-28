@@ -152,9 +152,6 @@ if(strlen($fname) > 0){
         $timeout =  "'". $timeout . ":00" . "'";
         $loc = se($_POST, "branch", "", false);
         $class = se($_POST, "class", "", false);
-
-        echo $timein;
-        echo $timeout;
         
         $statement = $db->prepare("INSERT INTO RESERVATION (DateTimeIn, DateTimeOut, LocationID, ClassID, LicenseNumber)
         VALUES (TIMESTAMP( $timein), TIMESTAMP( $timeout), :loc, :class, :licensen)");
