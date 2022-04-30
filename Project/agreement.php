@@ -59,11 +59,12 @@ if(isset($_POST["rentstart"]) && isset($_POST["odomstart"]) && isset($_POST["car
     }
     
     $rentstart = se($_POST, "renstart", "", false);
+    $rentstart = "'" . $rentstart . ":00" . "'";
     $odomstart = se($_POST, "odomstart", "", false);
     $car = se($_POST, "car", "", false);
 
     $statement = $db->prepare("INSERT INTO AGREEMENT (RentStart, OdomStart, ReservationID, VIN)
-    VALUES (:rentstart, :odomstart, :reservationid, :vin)");
+    VALUES (TIMESTAMP( $renstart), :odomstart, :reservationid, :vin)");
     try{
         $statement->execute([":rentstart" => $rentstart, ":odomstart" => $odomstart, ":reservtionid" => $reservationid, ":vin" => $car]);
     }
