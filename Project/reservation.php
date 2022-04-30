@@ -117,6 +117,7 @@ catch(PDOException $e){
 }
 ?>
 
+<h1>Create Reservation</h1>
 <div class="flex-container">
     <div>
         <form method="POST" onsubmit="return validate(this)">
