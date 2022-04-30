@@ -42,7 +42,12 @@ if(!empty($resToCancel)){
     }
 }
 
-$statement = $db->prepare("SELECT * FROM RESERVATION");
+$statement = $db->prepare("SELECT R1.ReservationID, R1.DateTimeIn, R1.DateTimeOut, R1.LocationID, R1.ClassID, R1.LicenseNumber 
+    FROM RESERVATION R1 LEFT JOIN
+	(SELECT R2.ReservationID, R2.DateTimeIn, R2.DateTimeOut, R2.LocationID, R2.ClassID, R2.LicenseNumber
+    FROM RESERVATION R2 WHERE R2.ReservationID IN (SELECT A.ReservationID FROM AGREEMENT A)) R3
+    ON R1.ReservationID = R3.ReservationID
+    WHERE R3.ReservationID IS NULL");
 $reservations = [];
 try{
     $statement->execute();
@@ -50,12 +55,12 @@ try{
     $reservations = $results;
 }
 catch(PDOException $e){
-    echo "bad query (reservations, pre-delete)";
+    echo "bad query (reservations, pre-delete) $e";
 }
 ?>
 
 <div>
-    <h1>Cancel Reservation</h1>
+    <h1>Cancel Pending Reservation</h1>
     <table>
         <tr>
             <td>Cancel</td>

@@ -167,6 +167,7 @@ catch(PDOException $e){
     </div>
 
     <div>
+        <h2 style="margin-left:70px">All Reservations</h2>
         <table>
             <tr>
                 <td>Reservation ID</td>
@@ -260,7 +261,7 @@ catch(PDOException $e){
     }
     table{
         width:100%;
-        margin-left:40px;
+        margin-left:60px;
     }
     td{
         text-align:center;
