@@ -34,6 +34,44 @@ function safer_echo($v, $k = null, $default = "", $isEcho = true){
 }
 
 $db = getDB();
+
+if(isset($_POST["rentstart"]) && isset($_POST["odomstart"]) && isset($_POST["card"])){
+    $reservationid = se($_POST, "resid", "", false);
+    $card = se($_POST, "card", "", false);
+
+    $statement = $db->prepare("SELECT LicenseNumber FROM RESERVATION WHERE ReservationID = :resid");
+    $customer = [];
+    try{
+        $statement->execute([":resid" => $reservationid]);
+        $results = $statement->fetch(PDO::FETCH_ASSOC);
+        $customer = $results;
+
+        $statement = $db->prepare("UPDATE CUSTOMER SET CardNum = :card WHERE LicenseNumber = :license");
+        try{
+            $statement->execute([":card" => $card, "license" => $customer["LicenseNumber"]]);
+        }
+        catch(PDOException $e){
+            echo "bad query (updating customer card)";
+        }
+    }
+    catch(PDOException $e){
+        echo "bad query (fetching license number of res id)";
+    }
+    
+    $rentstart = se($_POST, "renstart", "", false);
+    $odomstart = se($_POST, "odomstart", "", false);
+    $car = se($_POST, "car", "", false);
+
+    $statement = $db->prepare("INSERT INTO AGREEMENT (RentStart, OdomStart, ReservationID, VIN)
+    VALUES (:rentstart, :odomstart, :reservationid, :vin)");
+    try{
+        $statement->execute([":rentstart" => $rentstart, ":odomstart" => $odomstart, ":reservtionid" => $reservationid, ":vin" => $car]);
+    }
+    catch(PDOException $e){
+        echo "bad query (inserting into agreement)";
+    }
+}
+
 $statement = $db->prepare("SELECT R1.ReservationID, R1.DateTimeIn, R1.DateTimeOut, R1.LocationID, R1.ClassID, R1.LicenseNumber 
     FROM RESERVATION R1 LEFT JOIN
 	(SELECT R2.ReservationID, R2.DateTimeIn, R2.DateTimeOut, R2.LocationID, R2.ClassID, R2.LicenseNumber
@@ -190,10 +228,6 @@ catch(PDOException $e){
         return isValid;
     }
 </script>
-
-<?php 
-
-?>
 
 <style>
     .outerDiv{
