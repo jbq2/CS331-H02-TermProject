@@ -117,8 +117,8 @@ catch(PDOException $e){
 //     echo "bad querry (getting customers with no entered card)";
 // }
 
-$resid = $_GET["resid"];
-if(!empty($resid)){
+if(isset($_GET["resid"])){
+    $resid = $_GET["resid"];
     $statement = $db->prepare("SELECT * FROM CAR C INNER JOIN CAR_MODEL CM ON (C.ModelName = CM.ModelName AND C.ModelYear = CM.ModelYear)
     WHERE C.LocationID IN (
         SELECT LocationID FROM RESERVATION
