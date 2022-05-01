@@ -123,17 +123,17 @@ catch(PDOException $e){
         let vin = document.forms["addCar"]["VIN"].value;
         let isValid = true;
 
-        if(model ""){
+        if(model == ""){
             alert("Model must be filled out");
             isValid = false;
         }
 
-        if(make ""){
+        if(make == ""){
             alert("Make must be filled out");
             isValid = false;
         }
 
-        if(vin ""){
+        if(vin == ""){
             alert("VIN must be filled out");
             isValid = false;
         }
