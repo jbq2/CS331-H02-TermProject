@@ -1,4 +1,5 @@
 <?php
+include_once(__DIR__ . "/../lib/navbar.php");
 require_once(__DIR__ . "/../lib/db.php");
 $db = getDB();
 if(isset($_POST["ModelName"]) && isset($_POST["ModelYear"]) && isset($_POST["Make"]) && isset($_POST["VIN"]) && isset($_POST["LocationID"]) && isset($_POST["ClassID"])){ 
@@ -160,3 +161,5 @@ h1 {
  font-family: Source Sans Pro;
 }
 </style>
+
+<?php include_once(__DIR__ . '/styles.css'); ?>

@@ -1,0 +1,20 @@
+<style>
+* {
+    font-size: 100%;
+    font-family: Source Sans Pro;
+}
+body {
+    background-color: #EFF6E0;
+}
+.btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:visited{
+    background-color: #124559 !important;
+}
+
+.bg-dark {
+    background-color: #01161E !important;
+}
+
+.navbar-light {
+    background-color: #AEC3B0 !important;
+}
+</style>
