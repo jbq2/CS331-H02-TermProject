@@ -33,43 +33,60 @@ function safer_echo($v, $k = null, $default = "", $isEcho = true){
   return se($v, $k, $default, $isEcho);
 }
 
+$months = array("01","02","03","04","05","06","07","08","09","10","11","12");
+
 $db = getDB();
 
-if(isset($_POST["rentstart"]) && isset($_POST["odomstart"]) && isset($_POST["card"])){
-    $reservationid = se($_POST, "resid", "", false);
-    $card = se($_POST, "card", "", false);
+if(isset($_POST["rentstart"]) && isset($_POST["odomstart"]) && isset($_POST["cardnum"]) && isset($_POST["cardexpy"]) && isset($_POST["cardaddr"])){
+    $resid = $_GET["resid"];
+    $cardnum = se($_POST, "cardnum", "", false);
+    $cardtype = se($_POST, "cardtype", "", false);
+    $cardexpy = se($_POST, "cardexpy", "", false);
+    $cardexpm = se($_POST, "cardexpm", "", false);
+    $cardaddr = se($_POST, "cardaddr", "", false);
+
+    $statement = $db->prepare("INSERT INTO CREDIT_CARD (CardNum, CardType, ExpYear, ExpMonth, Address)
+    VALUES (:cardnum, :cardtype, :expyear, :expmonth, :addr)");
+    try{
+        $statement->execute([":cardnum" => $cardnum, ":cardtype" => $cardtype, ":expyear" => $cardexpy, ":expmonth" => $cardexpm, ":addr" => $cardaddr]);
+    }
+    catch(PDOException $e){
+        echo "Credit card already on file \n";
+    }
 
     $statement = $db->prepare("SELECT LicenseNumber FROM RESERVATION WHERE ReservationID = :resid");
     $customer = [];
     try{
-        $statement->execute([":resid" => $reservationid]);
+        $statement->execute([":resid" => $resid]);
         $results = $statement->fetch(PDO::FETCH_ASSOC);
         $customer = $results;
+        $customerLicense = $customer["LicenseNumber"];
 
         $statement = $db->prepare("UPDATE CUSTOMER SET CardNum = :card WHERE LicenseNumber = :license");
         try{
-            $statement->execute([":card" => $card, "license" => $customer["LicenseNumber"]]);
+            $statement->execute([":card" => $cardnum, "license" => $customerLicense]);
+
+            $rentstart = se($_POST, "rentstart", "", false);
+            $rentstart = "'" . $rentstart . ":00" . "'";
+            $odomstart = se($_POST, "odomstart", "", false);
+            $car = se($_POST, "car", "", false);
+        
+            $statement = $db->prepare("INSERT INTO AGREEMENT (RentStart, OdomStart, ReservationID, VIN)
+            VALUES (TIMESTAMP( $rentstart), :odomstart, :reservationid, :vin)");
+            try{
+                $statement->execute([":odomstart" => $odomstart, ":reservationid" => $resid, ":vin" => $car]);
+                echo "Successfully filed agreement for reservation with ID $resid \n";
+            }
+            catch(PDOException $e){
+                echo "bad query (inserting into agreement) $e";
+            }
         }
         catch(PDOException $e){
-            echo "bad query (updating customer card)";
+            echo "bad query (updating customer card) $e";
         }
     }
     catch(PDOException $e){
-        echo "bad query (fetching license number of res id)";
-    }
-    
-    $rentstart = se($_POST, "renstart", "", false);
-    $rentstart = "'" . $rentstart . ":00" . "'";
-    $odomstart = se($_POST, "odomstart", "", false);
-    $car = se($_POST, "car", "", false);
-
-    $statement = $db->prepare("INSERT INTO AGREEMENT (RentStart, OdomStart, ReservationID, VIN)
-    VALUES (TIMESTAMP( $renstart), :odomstart, :reservationid, :vin)");
-    try{
-        $statement->execute([":rentstart" => $rentstart, ":odomstart" => $odomstart, ":reservtionid" => $reservationid, ":vin" => $car]);
-    }
-    catch(PDOException $e){
-        echo "bad query (inserting into agreement)";
+        echo "bad query (fetching license number of res id) $e";
     }
 }
 
@@ -100,16 +117,22 @@ catch(PDOException $e){
 //     echo "bad querry (getting customers with no entered card)";
 // }
 
-$statement = $db->prepare("SELECT * FROM CAR C INNER JOIN CAR_MODEL CM ON (C.ModelName = CM.ModelName AND C.ModelYear = CM.ModelYear)
-ORDER BY ClassID");
-$cars = [];
-try{
-    $statement->execute();
-    $results = $statement->fetchAll(PDO::FETCH_ASSOC);
-    $cars = $results;
-}
-catch(PDOException $e){
-    echo "bad querry (fetching cars)";
+$resid = $_GET["resid"];
+if(!empty($resid)){
+    $statement = $db->prepare("SELECT * FROM CAR C INNER JOIN CAR_MODEL CM ON (C.ModelName = CM.ModelName AND C.ModelYear = CM.ModelYear)
+    WHERE C.LocationID IN (
+        SELECT LocationID FROM RESERVATION
+        WHERE ReservationID = :resid
+    )
+    ORDER BY C.ClassID");
+    try{
+        $statement->execute([":resid" => $resid]);
+        $results = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $cars = $results;
+    }
+    catch(PDOException $e){
+        echo "bad querry (fetching cars) $e";
+    }
 }
 
 $statement = $db->prepare("SELECT * FROM AGREEMENT");
@@ -129,15 +152,19 @@ catch(PDOException $e){
     <div class="flex-container" >
         <div>
             <h3>Create Agreement</h3>
-            <form method="POST" onsubmit="return validate(this)">
+            <form method="GET">
                 <label for="resid">Reservation ID</label>
-                <select name="resid">
+                <select style="display:inline" name="resid">
+                    <option></option>
                     <?php foreach($reservations as $reservation) : ?>
                         <option value="<?php se($reservation, "ReservationID") ?>"><?php se($reservation, "ReservationID") ?></option>
                     <?php endforeach; ?>
                 </select>
+                <input style="display:inline" type="submit" value="Select">
+            </form>
+            <form method="POST" onsubmit="return validate(this)">
                 <label for="rentstart">Start Date/Time (YYYY-MM-DD HH:MM)</label>
-                <input type="text" name="renstart" /> 
+                <input type="text" name="rentstart" /> 
                 <label for="odomstart">Current Mileage</label>
                 <input type="text" name="odomstart" />
                 <label for="car">Car</label>
@@ -146,8 +173,26 @@ catch(PDOException $e){
                         <option value="<?php se($car, "VIN") ?>"><?php echo $car["Make"] . " " . $car["ModelName"] . "; Class: " . $car["ClassID"] ?></option>
                     <?php endforeach; ?>
                 </select>
-                <label for="card">Card</label>
-                <input type="text" name="card" /> 
+                <label for="cardnum">Card Number</label>
+                <input type="text" name="cardnum" /> 
+                <label for="cardtype">Card Type</label>
+                <select name="cardtype">
+                    <option value="Visa">Visa</option>
+                    <option value="MasterCard">MasterCard</option>
+                    <option value="Discover">Discover</option>
+                    <option value="American Express">American Express</option>
+                    <option value="Debit">Debit</option>
+                </select>
+                <label for="cardexpy">Expiration Year</label>
+                <input type="text" name="cardexpy" />
+                <label for="cardexpm">Expiration Month</label>
+                <select name="cardexpm">
+                    <?php foreach($months as $month) : ?>
+                        <option value="<?php se($month) ?>"><?php se($month) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <label for="cardaddr">Card Address</label>
+                <input type="text" name="cardaddr" />
                 <input type="submit" value="File Agreement" />
             </form>
         </div>
@@ -211,7 +256,10 @@ catch(PDOException $e){
     function validate(form){
         let rentstart = form.rentstart.value;
         let odomstart = form.odomstart.value;
-        let card = form.card.value;
+        let cardnum = form.cardnum.value;
+        // do validation for card type, exp year, and card addr
+        let cardexpy = form.cardexpy.value;
+        let cardaddr = form.cardaddr.value;
         let isValid = true;
 
         if(!/[0-9]{4}\-[0-9]{2}\-[0-9]{2} [0-9]{2}:[0-9]{2}/.test(rentstart)){
@@ -222,7 +270,15 @@ catch(PDOException $e){
             isValid = false;    
         }
 
-        if(!/[0-9]{13,19}/.test(card)){
+        if(!/[0-9]{13,19}/.test(cardnum)){
+            isValid = false;
+        }
+
+        if(!/[0-9]{4}/.test(cardexpy)){
+            isValid = false;
+        }
+
+        if(cardaddr.length == 0 || cardaddr.length > 50){
             isValid = false;
         }
 
