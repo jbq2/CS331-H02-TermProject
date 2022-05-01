@@ -1,3 +1,6 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+
 <?php 
 require_once(__DIR__ . "/../lib/db.php");
 
@@ -117,6 +120,7 @@ catch(PDOException $e){
 }
 ?>
 
+<div class="outerDiv">
 <h1>Create Reservation</h1>
 <div class="flex-container">
     <div>
@@ -167,7 +171,7 @@ catch(PDOException $e){
     </div>
 
     <div>
-        <h2 style="margin-left:70px">All Reservations</h2>
+        <h2 style="margin-left:140px">All Reservations</h2>
         <table>
             <tr>
                 <td>Reservation ID</td>
@@ -189,6 +193,7 @@ catch(PDOException $e){
             <?php endforeach; ?>
         </table>
     </div>
+</div>
 </div>
 
 <script>
@@ -239,6 +244,9 @@ catch(PDOException $e){
 ?>
 
 <style>
+    .outerDiv{
+        margin-left:30px
+    }
     label{
         display:block;
     }
@@ -261,7 +269,7 @@ catch(PDOException $e){
     }
     table{
         width:100%;
-        margin-left:60px;
+        margin-left:130px;
     }
     td{
         text-align:center;
