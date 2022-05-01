@@ -2,7 +2,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 
 <?php
-
+include_once(__DIR__ . "/../lib/navbar.php");
 require_once(__DIR__ . "/../lib/db.php");
 
 function se($v, $k = null, $default = "", $isEcho = true) {
@@ -117,26 +117,29 @@ catch(PDOException $e){
 //     echo "bad querry (getting customers with no entered card)";
 // }
 
-$resid = $_GET["resid"];
-if(!empty($resid)){
-    $statement = $db->prepare("SELECT * FROM CAR C INNER JOIN CAR_MODEL CM ON (C.ModelName = CM.ModelName AND C.ModelYear = CM.ModelYear)
-    WHERE C.LocationID IN (
-        SELECT LocationID FROM RESERVATION
-        WHERE ReservationID = :resid
-    ) AND C.VIN NOT IN (
-        SELECT VIN FROM AGREEMENT
-        WHERE RentEnd IS NULL AND OdomEnd IS NULL
-    )
-    ORDER BY C.ClassID");
-    try{
-        $statement->execute([":resid" => $resid]);
-        $results = $statement->fetchAll(PDO::FETCH_ASSOC);
-        $cars = $results;
-    }
-    catch(PDOException $e){
-        echo "bad querry (fetching cars) $e";
+if(isset($_GET["resid"])){
+    $resid = $_GET["resid"];
+    if(!empty($resid)){
+        $statement = $db->prepare("SELECT * FROM CAR C INNER JOIN CAR_MODEL CM ON (C.ModelName = CM.ModelName AND C.ModelYear = CM.ModelYear)
+        WHERE C.LocationID IN (
+            SELECT LocationID FROM RESERVATION
+            WHERE ReservationID = :resid
+        ) AND C.VIN NOT IN (
+            SELECT VIN FROM AGREEMENT
+            WHERE RentEnd IS NULL AND OdomEnd IS NULL
+        )
+        ORDER BY C.ClassID");
+        try{
+            $statement->execute([":resid" => $resid]);
+            $results = $statement->fetchAll(PDO::FETCH_ASSOC);
+            $cars = $results;
+        }
+        catch(PDOException $e){
+            echo "bad querry (fetching cars) $e";
+        }
     }
 }
+
 
 $statement = $db->prepare("SELECT * FROM AGREEMENT");
 $agreements = [];
@@ -325,3 +328,5 @@ catch(PDOException $e){
         border:1px;
     }
 </style>
+
+<?php include_once(__DIR__ . '/styles.css'); ?>
