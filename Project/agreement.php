@@ -119,27 +119,24 @@ catch(PDOException $e){
 
 if(isset($_GET["resid"])){
     $resid = $_GET["resid"];
-    if(!empty($resid)){
-        $statement = $db->prepare("SELECT * FROM CAR C INNER JOIN CAR_MODEL CM ON (C.ModelName = CM.ModelName AND C.ModelYear = CM.ModelYear)
-        WHERE C.LocationID IN (
-            SELECT LocationID FROM RESERVATION
-            WHERE ReservationID = :resid
-        ) AND C.VIN NOT IN (
-            SELECT VIN FROM AGREEMENT
-            WHERE RentEnd IS NULL AND OdomEnd IS NULL
-        )
-        ORDER BY C.ClassID");
-        try{
-            $statement->execute([":resid" => $resid]);
-            $results = $statement->fetchAll(PDO::FETCH_ASSOC);
-            $cars = $results;
-        }
-        catch(PDOException $e){
-            echo "bad querry (fetching cars) $e";
-        }
+    $statement = $db->prepare("SELECT * FROM CAR C INNER JOIN CAR_MODEL CM ON (C.ModelName = CM.ModelName AND C.ModelYear = CM.ModelYear)
+    WHERE C.LocationID IN (
+        SELECT LocationID FROM RESERVATION
+        WHERE ReservationID = :resid
+    ) AND C.VIN NOT IN (
+        SELECT VIN FROM AGREEMENT
+        WHERE RentEnd IS NULL AND OdomEnd IS NULL
+    )
+    ORDER BY C.ClassID");
+    try{
+        $statement->execute([":resid" => $resid]);
+        $results = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $cars = $results;
+    }
+    catch(PDOException $e){
+        echo "bad querry (fetching cars) $e";
     }
 }
-
 
 $statement = $db->prepare("SELECT * FROM AGREEMENT");
 $agreements = [];
