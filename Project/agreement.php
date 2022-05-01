@@ -123,6 +123,9 @@ if(!empty($resid)){
     WHERE C.LocationID IN (
         SELECT LocationID FROM RESERVATION
         WHERE ReservationID = :resid
+    ) AND C.VIN NOT IN (
+        SELECT VIN FROM AGREEMENT
+        WHERE RentEnd IS NULL AND OdomEnd IS NULL
     )
     ORDER BY C.ClassID");
     try{
