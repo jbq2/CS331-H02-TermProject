@@ -26,6 +26,9 @@
         <li class="nav-item">
           <a class="nav-link active" href="/../Project/agreement.php">Agreements</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="/../Project/edit_agreement.php">Edit Agreements</a>
+        </li>
       </ul>
     </div>
   </div>
