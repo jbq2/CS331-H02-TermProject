@@ -187,3 +187,5 @@ catch(PDOException $e){
         border:1px;
     }
 </style>
+
+<?php include_once(__DIR__ . '/styles.css'); ?>
