@@ -51,7 +51,7 @@ if(isset($_POST["rentstart"]) && isset($_POST["odomstart"]) && isset($_POST["car
         $statement->execute([":cardnum" => $cardnum, ":cardtype" => $cardtype, ":expyear" => $cardexpy, ":expmonth" => $cardexpm, ":addr" => $cardaddr]);
     }
     catch(PDOException $e){
-        echo "Credit card already on file; ";
+        echo "Credit card already on file \n";
     }
 
     $statement = $db->prepare("SELECT LicenseNumber FROM RESERVATION WHERE ReservationID = :resid");
@@ -119,24 +119,27 @@ catch(PDOException $e){
 
 if(isset($_GET["resid"])){
     $resid = $_GET["resid"];
-    $statement = $db->prepare("SELECT * FROM CAR C INNER JOIN CAR_MODEL CM ON (C.ModelName = CM.ModelName AND C.ModelYear = CM.ModelYear)
-    WHERE C.LocationID IN (
-        SELECT LocationID FROM RESERVATION
-        WHERE ReservationID = :resid
-    ) AND C.VIN NOT IN (
-        SELECT VIN FROM AGREEMENT
-        WHERE RentEnd IS NULL AND OdomEnd IS NULL
-    )
-    ORDER BY C.ClassID");
-    try{
-        $statement->execute([":resid" => $resid]);
-        $results = $statement->fetchAll(PDO::FETCH_ASSOC);
-        $cars = $results;
-    }
-    catch(PDOException $e){
-        echo "bad querry (fetching cars) $e";
+    if(!empty($resid)){
+        $statement = $db->prepare("SELECT * FROM CAR C INNER JOIN CAR_MODEL CM ON (C.ModelName = CM.ModelName AND C.ModelYear = CM.ModelYear)
+        WHERE C.LocationID IN (
+            SELECT LocationID FROM RESERVATION
+            WHERE ReservationID = :resid
+        ) AND C.VIN NOT IN (
+            SELECT VIN FROM AGREEMENT
+            WHERE RentEnd IS NULL AND OdomEnd IS NULL
+        )
+        ORDER BY C.ClassID");
+        try{
+            $statement->execute([":resid" => $resid]);
+            $results = $statement->fetchAll(PDO::FETCH_ASSOC);
+            $cars = $results;
+        }
+        catch(PDOException $e){
+            echo "bad querry (fetching cars) $e";
+        }
     }
 }
+
 
 $statement = $db->prepare("SELECT * FROM AGREEMENT");
 $agreements = [];
@@ -163,7 +166,7 @@ catch(PDOException $e){
                         <option value="<?php se($reservation, "ReservationID") ?>"><?php se($reservation, "ReservationID") ?></option>
                     <?php endforeach; ?>
                 </select>
-                <input style="display:inline" type="submit" value="Select">
+                <input style="display:inline" class="btn btn-primary" type="submit" value="Select">
             </form>
             <form method="POST" onsubmit="return validate(this)">
                 <label for="rentstart">Start Date/Time (YYYY-MM-DD HH:MM)</label>
@@ -173,7 +176,7 @@ catch(PDOException $e){
                 <label for="car">Car</label>
                 <select name="car">
                     <?php foreach($cars as $car) : ?>
-                        <option value="<?php se($car, "VIN") ?>"><?php echo $car["Make"] . " " . $car["ModelName"] . "; Class: " . $car["ClassID"] ?></option>
+                        <option value="<?php se($car, "VIN") ?>"><?php echo $car["VIN"] . ": " . $car["Make"] . " " . $car["ModelName"] . "; Class: " . $car["ClassID"] ?></option>
                     <?php endforeach; ?>
                 </select>
                 <label for="cardnum">Card Number</label>
@@ -196,7 +199,7 @@ catch(PDOException $e){
                 </select>
                 <label for="cardaddr">Card Address</label>
                 <input type="text" name="cardaddr" />
-                <input type="submit" value="File Agreement" />
+                <input type="submit" class="btn btn-primary" value="File Agreement" />
             </form>
         </div>
 

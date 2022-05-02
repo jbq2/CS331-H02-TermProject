@@ -92,7 +92,7 @@ catch(PDOException $e){
                         <option value="<?php se($agreement, "ContractNum") ?>"><?php se($agreement, "ContractNum") ?></option>
                     <?php endforeach; ?>
                 </select>
-                <input style="display:inline" type="submit" value="Select" />
+                <input style="display:inline" class="btn btn-primary" type="submit" value="Select" />
             </form>
             <form method="POST" onsubmit="return validate(this)">
                 <label for="rentstart">Rental Start</label>
@@ -107,7 +107,7 @@ catch(PDOException $e){
                 <input type="text" name="resid" value="<?php ($chosenAgreement != -1) ? se($chosenAgreement, "ReservationID") : '' ?>" disabled />
                 <label for="vin">VIN</label>
                 <input type="text" name="vin" value="<?php ($chosenAgreement != -1) ? se($chosenAgreement, "VIN") : '' ?>" disabled />
-                <input type="submit" value="Confirm" />
+                <input type="submit" class="btn btn-primary" value="Confirm" />
             </form>
         </div>
 

@@ -5,7 +5,7 @@
     include_once(__DIR__ . "/../lib/navbar.php");
     require_once(__DIR__ . "/../lib/functions.php");
     $db = getDB();
-    $query = "SELECT Make, CAR.ModelName, CAR.ModelYear, ClassID FROM CAR_MODEL, CAR WHERE CAR.ModelName = CAR_MODEL.ModelName AND CAR.ModelYear = CAR_MODEL.ModelYear"; 
+    $query = "SELECT DISTINCT Make, CAR.ModelName, CAR.ModelYear, ClassID FROM CAR_MODEL, CAR WHERE CAR.ModelName = CAR_MODEL.ModelName AND CAR.ModelYear = CAR_MODEL.ModelYear"; 
     error_log($query);
     $stmt = $db->prepare($query);
     $results = [];
@@ -34,6 +34,7 @@
                     <th onclick="sortTable(1)">Model Name</th>
                     <th onclick="sortTable(2)">Year</th>
                     <th onclick="sortTable(3)">Class</th>
+                    <th onclick="sortTable(4)">Count</th>
                 </thead>
                 <tbody>
                     <?php if (!$results || count($results) == 0) : ?>
@@ -42,11 +43,12 @@
                         </tr>
                     <?php else : ?>
                         <?php foreach ($results as $result) : ?>
-                            <tr onclick="sortTable(0)">
+                            <tr>
                                 <td><?php se($result, "Make"); ?></td>
                                 <td><?php se($result, "ModelName"); ?></td>
                                 <td><?php se($result, "ModelYear"); ?></td>
                                 <td><?php se($result, "ClassID"); ?></td>
+                                <td><?php echo carCount($result['ModelName'], $result['ModelYear'])?></td>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>

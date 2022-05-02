@@ -8,13 +8,18 @@ body {
 }
 .btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:visited{
     background-color: #124559 !important;
+    border-color: #124559 !important;
 }
 
 .bg-dark {
-    background-color: #01161E !important;
+    background-color: #124559 !important;
 }
 
 .navbar-light {
     background-color: #AEC3B0 !important;
+}
+
+h1 {
+    font-weight: bold;
 }
 </style>
