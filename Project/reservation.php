@@ -50,18 +50,26 @@ catch(PDOException $e){
     echo "bad query (branches)";
 }
 
-$statement = $db->prepare("SELECT * FROM CAR_CLASS");
-$classes = [];
-try{
-   $statement->execute();
-   $results = $statement->fetchAll(PDO::FETCH_ASSOC);
-   $classes = $results; 
-}
-catch(PDOException $e){
-    echo "bad query (classes)";
+if(isset($_GET["branch"]) && $_GET["branch"] != ""){
+    $loc = $_GET["branch"];
+    $statement = $db->prepare("SELECT DISTINCT CC.ClassID FROM CAR_CLASS CC INNER JOIN CAR C ON CC.ClassID = C.ClassID
+    WHERE C.LocationID = :branch
+    AND C.VIN NOT IN (
+        SELECT VIN FROM AGREEMENT
+        WHERE RentEnd IS NULL AND OdomEnd IS NULL
+    )");
+    $classes = [];
+    try{
+        $statement->execute([":branch" => $loc]);
+        $results = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $classes = $results; 
+    }
+    catch(PDOException $e){
+        echo "bad query (classes)";
+    }
 }
 
-if(isset($_POST["license_n"]) && isset($_POST["lname"]) && isset($_POST["fname"]) && isset($_POST["license_s"])){ 
+if(isset($_POST["license_n"]) && isset($_POST["lname"]) && isset($_POST["fname"]) && isset($_POST["license_s"]) && isset($_POST["timein"]) && isset($_POST["timeout"]) && isset($_GET["branch"]) && $_GET["branch"] != ""){ 
     $licensenum = se($_POST, "license_n", "", false);
     $minit = se($_POST, "minit", "", false);
     $lname = se($_POST, "lname", "", false);
@@ -87,7 +95,7 @@ if(isset($_POST["license_n"]) && isset($_POST["lname"]) && isset($_POST["fname"]
         $timein = "'" . $timein . ":00" . "'";
         $timeout = se($_POST, "timeout", "", false);
         $timeout =  "'". $timeout . ":00" . "'";
-        $loc = se($_POST, "branch", "", false);
+        $loc = $_GET["branch"];
         $class = se($_POST, "class", "", false);
 
         $statement = $db->prepare("INSERT INTO RESERVATION (DateTimeIn, DateTimeOut, LocationID, ClassID, LicenseNumber)
@@ -125,31 +133,21 @@ catch(PDOException $e){
 <h1>Create Reservation</h1>
 <div class="flex-container">
     <div>
-        <form method="POST" onsubmit="return validate(this)">
-            <!-- <label for="day">Day</label>
-            <select name="day">
-                <?php foreach($days as $day) : ?>
-                    <option value="<?php se($day) ?>"><?php se($day) ?></option>
-                <?php endforeach; ?>
-            </select>
-            <label for="month">Month</label>
-            <select name="month">
-                <?php foreach($months as $month) : ?>
-                    <option value="<?php se($month) ?>"><?php se($month) ?></option>
-                <?php endforeach; ?>
-            </select>
-            <label for="year">Year</label>
-            <input type="text" name="year" /> -->
-            <label for="timein">Time In (YYYY-MM-DD HH:MM)</label>
-            <input type="text" name="timein" />
-            <label for="timeout">Time Out (YYYY-MM-DD HH:MM)</label>
-            <input type="text" name="timeout" />
+        <form method="GET">
             <label for="branch">Branch</label>
-            <select name="branch">
+            <select name="branch" style="display:inline">
+                <option></option>
                 <?php foreach($branches as $branch) : ?>
                     <option value="<?php se($branch["LocationID"]) ?>"> <?php se($branch["LocationID"]) ?> </option>
                 <?php endforeach; ?>
             </select>
+            <input style="display:inline" type="submit" value="Select">
+        </form>
+        <form method="POST" onsubmit="return validate(this)">
+            <label for="timein">Time In (YYYY-MM-DD HH:MM)</label>
+            <input type="text" name="timein" />
+            <label for="timeout">Time Out (YYYY-MM-DD HH:MM)</label>
+            <input type="text" name="timeout" />
             <label for="class">Class</label>
             <select name="class">
                 <?php foreach($classes as $class) : ?>
