@@ -51,7 +51,7 @@ if(isset($_POST["rentstart"]) && isset($_POST["odomstart"]) && isset($_POST["car
         $statement->execute([":cardnum" => $cardnum, ":cardtype" => $cardtype, ":expyear" => $cardexpy, ":expmonth" => $cardexpm, ":addr" => $cardaddr]);
     }
     catch(PDOException $e){
-        echo "Credit card already on file \n";
+        echo "Credit card already on file; ";
     }
 
     $statement = $db->prepare("SELECT LicenseNumber FROM RESERVATION WHERE ReservationID = :resid");
