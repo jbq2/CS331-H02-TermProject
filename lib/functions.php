@@ -27,4 +27,27 @@ function se($v, $k = null, $default = "", $isEcho = true) {
 function safer_echo($v, $k = null, $default = "", $isEcho = true){
   return se($v, $k, $default, $isEcho);
 }
+
+function carCount($model, $year) {
+    $db = getDB();
+    $query = "SELECT MODELNAME, MODELYEAR, COUNT(*) as 'Total' FROM CAR WHERE MODELNAME = :modelname AND MODELYEAR = :modelyear GROUP BY :modelname, :modelyear"; 
+    error_log($query);
+    $stmt = $db->prepare($query);
+    $results = [];
+    try {
+        $stmt->execute([
+            ":modelname" => $model, 
+            ":modelyear" => $year
+        ]);
+        $r = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if ($r) {
+            $results = $r;
+        }
+    } catch (PDOException $e) {
+        error_log("Error fetching cars: " . var_export($e->errorInfo, true));
+    }
+    return $results[0]["Total"];
+}
+
+
 ?>

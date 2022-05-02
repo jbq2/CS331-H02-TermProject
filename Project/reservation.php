@@ -135,13 +135,13 @@ catch(PDOException $e){
     <div>
         <form method="GET">
             <label for="branch">Branch</label>
-            <select name="branch" style="display:inline">
+            <select name="branch" class="dropdownsize"style="display:inline">
                 <option></option>
                 <?php foreach($branches as $branch) : ?>
                     <option value="<?php se($branch["LocationID"]) ?>"> <?php se($branch["LocationID"]) ?> </option>
                 <?php endforeach; ?>
             </select>
-            <input style="display:inline" type="submit" value="Select">
+            <input style="display:inline" class="btn btn-primary" type="submit" value="Select">
         </form>
         <form method="POST" onsubmit="return validate(this)">
             <label for="timein">Time In (YYYY-MM-DD HH:MM)</label>
@@ -165,7 +165,7 @@ catch(PDOException $e){
             <labeL for="lname">Customer Last Name</labeL>
             <input type="text" name="lname" />
 
-            <input type="submit" value="File Reservation"/>
+            <input type="submit" class="btn btn-primary" value="File Reservation"/>
         </form>
     </div>
 
@@ -276,6 +276,10 @@ catch(PDOException $e){
         padding-left:10px;
         padding-right:10px;
         border:1px;
+    }
+
+    .dropdownsize {
+        height:35px;
     }
 </style>
 
